@@ -1,0 +1,128 @@
+{% extends 'rides/base.html' %}
+{% load static %}
+
+{% block title %}Steve Cabs — Ride in style{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background:#000; overflow-x:hidden; }
+.hero {
+    position:relative; min-height:88vh; display:flex; align-items:center; justify-content:center;
+    color:#fff; text-align:center; padding:40px 20px;
+}
+.hero::before {
+    content:""; position:absolute; inset:0; background-size:cover; background-position:center;
+    animation:heroSlide 24s infinite; z-index:-2;
+}
+.hero::after {
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg,rgba(0,0,0,.88),rgba(120,0,20,.55)); z-index:-1;
+}
+@keyframes heroSlide {
+    0%   { background-image:url('https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920'); }
+    25%  { background-image:url('https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=1920'); }
+    50%  { background-image:url('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1920'); }
+    75%  { background-image:url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920'); }
+    100% { background-image:url('https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920'); }
+}
+.hero h1 { font-size:clamp(2.5rem,6vw,4rem); font-weight:800; color:#fff; text-shadow:0 4px 20px #000; }
+/* # Landing hero title: zoom in + fade (first impression) */
+@keyframes steveHeroZoomFade {
+  0% { opacity:0; transform:scale(0.72); filter:blur(8px); letter-spacing:0.4em; }
+  100% { opacity:1; transform:scale(1); filter:blur(0); letter-spacing:0.02em; }
+}
+.hero-brand { animation: steveHeroZoomFade 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.hero-sub { opacity:0; animation: heroSubFade 0.8s ease 0.35s forwards; }
+@keyframes heroSubFade { to { opacity:0.92; } }
+.hero .cta-row { opacity:0; animation: heroSubFade 0.8s ease 0.55s forwards; }
+.hero p { margin-top:12px; font-size:1.2rem; opacity:.9; max-width:560px; margin-left:auto; margin-right:auto; }
+.cta-row { margin-top:28px; display:flex; flex-wrap:wrap; gap:14px; justify-content:center; }
+.cta {
+    display:inline-block; padding:14px 26px; border-radius:32px; font-weight:700; text-decoration:none;
+    border:2px solid #dc143c; transition:.25s;
+}
+.cta-primary { background:linear-gradient(90deg,#dc143c,#ff3355); color:#fff; box-shadow:0 0 24px rgba(220,20,60,.45); }
+.cta-primary:hover { transform:translateY(-2px); box-shadow:0 0 32px rgba(220,20,60,.7); }
+.cta-outline { background:transparent; color:#dc143c; }
+.cta-outline:hover { background:#dc143c; color:#fff; }
+.section-title { text-align:center; color:#dc143c; font-size:1.75rem; margin:48px 0 24px; font-weight:800; }
+.mini-slider {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;
+    padding:0 24px 48px; max-width:1200px; margin:0 auto;
+}
+.mini-card {
+    height:200px; border-radius:16px; background-size:cover; background-position:center;
+    border:1px solid rgba(220,20,60,.5); position:relative; overflow:hidden;
+    animation:miniFade 16s infinite;
+}
+.mini-card:nth-child(2) { animation-delay:4s; }
+.mini-card:nth-child(3) { animation-delay:8s; }
+@keyframes miniFade {
+    0%,30% { opacity:1; filter:brightness(1); }
+    50% { opacity:.85; filter:brightness(1.1); }
+    100% { opacity:1; }
+}
+.mini-card span {
+    position:absolute; bottom:0; left:0; right:0; padding:14px;
+    background:linear-gradient(transparent,rgba(0,0,0,.9)); font-weight:700;
+}
+.features { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; padding:0 24px 56px; max-width:1200px; margin:0 auto; }
+.feature-card {
+    background:#111; padding:26px; border-radius:16px; text-align:center;
+    border:1px solid rgba(220,20,60,.35); transition:.25s;
+}
+.feature-card:hover { transform:translateY(-6px); box-shadow:0 12px 32px rgba(220,20,60,.2); }
+.feature-card h4 { color:#dc143c; margin-bottom:10px; font-size:1.1rem; }
+.login-strip {
+    text-align:center; padding:32px 16px 48px; color:#888; font-size:.95rem;
+}
+.login-strip a { color:#dc143c; font-weight:700; margin:0 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div>
+        <h1 class="hero-brand">Steve Cabs</h1>
+        <p class="hero-sub">Premium black &amp; red experience — live tracking, OTP pickup, voice trip logs, and secure payments.</p>
+        <div class="cta-row">
+            {% if user.is_authenticated %}
+                {% if user.role == 'driver' %}
+                <a class="cta cta-primary" href="{% url 'rides:driver_dashboard' %}">Driver dashboard</a>
+                {% else %}
+                <a class="cta cta-primary" href="{% url 'rides:dashboard' %}">Book a ride</a>
+                {% endif %}
+            {% else %}
+                <a class="cta cta-primary" href="{% url 'login' %}?next={% url 'rides:dashboard' %}">Book — rider login</a>
+                <a class="cta cta-outline" href="{% url 'login' %}?next={% url 'rides:driver_dashboard' %}">Drive — partner login</a>
+            {% endif %}
+            <a class="cta cta-outline" href="{% url 'login' %}?next=/admin-dashboard/">Staff / admin</a>
+        </div>
+    </div>
+</div>
+
+<h2 class="section-title">Why riders choose us</h2>
+<div class="mini-slider">
+    <div class="mini-card" style="background-image:url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800');">
+        <span>Executive fleet feel</span>
+    </div>
+    <div class="mini-card" style="background-image:url('https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800');">
+        <span>City-wide coverage</span>
+    </div>
+    <div class="mini-card" style="background-image:url('https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800');">
+        <span>24×7 dispatch ready</span>
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature-card"><h4>⚡ Smart fare</h4><p>Distance-based pricing shown before you confirm.</p></div>
+    <div class="feature-card"><h4>🔐 OTP start</h4><p>Pickup code so only you authorise trip start.</p></div>
+    <div class="feature-card"><h4>🎙️ Trip recording</h4><p>Audio archived for safety — admin can review history.</p></div>
+    <div class="feature-card"><h4>💳 Pay your way</h4><p>Razorpay test checkout or cash — then rate your driver.</p></div>
+</div>
+
+<div class="login-strip">
+    New here? <a href="{% url 'register' %}">Create rider or driver account</a>
+    · Same secure login for customers, drivers, and staff (staff uses admin dashboard after login).
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Steve Cabs — Add user (admin)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="auth-body">
+    <div class="auth-card">
+        <h2>Add customer / driver</h2>
+        {# # Staff-only form reuses RegisterForm (role + language) #}
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Create account</button>
+        </form>
+        <a href="/admin-dashboard/">← Back to dashboard</a>
+    </div>
+</body>
+</html>

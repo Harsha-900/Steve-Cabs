@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Steve Cabs - {% block title %}{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="{% url 'rides:landing' %}" class="steve-brand" title="Steve Cabs home">STEVE CABS</a>
+
+    <div>
+        {% if user.is_authenticated %}
+            {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" alt="" width="36" height="36" style="border-radius:50%;vertical-align:middle;border:2px solid #dc143c;margin-right:8px;">
+            {% endif %}
+            <span>Welcome, {{ user.username }}</span>
+
+            <!-- ✅ FIXED -->
+            <a href="{% url 'rides:dashboard' %}">Dashboard</a>
+
+            <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" style="background:none; border:none; color:#dc143c; cursor:pointer;">
+                    Logout
+                </button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'register' %}">Register</a>
+        {% endif %}
+    </div>
+</nav>
+
+<main class="page-main-fade">
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    © 2025 Steve Cabs - All rights reserved.
+</footer>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

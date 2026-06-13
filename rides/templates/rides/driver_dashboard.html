@@ -1,0 +1,148 @@
+{% extends 'rides/base.html' %}
+{% load static %}
+
+{% block title %}Driver — Steve Cabs{% endblock %}
+
+{% block extra_css %}
+<style>
+.section-label { color:#dc143c; font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; margin-bottom:8px; font-weight:700; }
+.dash-headline { color:#fff; font-size:1.5rem; margin:0 0 6px; font-weight:800; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<nav class="dash-subnav" aria-label="Driver dashboard sections">
+    <div class="dash-subnav-scroll">
+        <a href="#dash-d-overview" class="is-active">Overview</a>
+        <a href="#dash-d-active">My rides</a>
+        <a href="#dash-d-pending">Requests</a>
+        <a href="#dash-d-gps">Location</a>
+        <a href="#dash-d-chat">Chat</a>
+        <a href="#dash-d-support">Support</a>
+        <a href="#dash-d-history">History</a>
+    </div>
+</nav>
+
+<div class="dash-shell" data-driver-lang="{{ request.user.language }}">
+
+    <section id="dash-d-overview" class="dash-section dashboard-card">
+        <div class="section-label">Today</div>
+        <h2 class="dash-headline">Your shift</h2>
+        <div id="earningsStrip">
+            Completed trips today: <strong style="color:#dc143c;">₹{{ today_earnings|floatformat:2 }}</strong>
+        </div>
+        <p id="availabilityBanner" style="display:none;margin-top:12px;color:#aaa;font-size:.95rem;">
+            You’re online — waiting for the next assignment.
+        </p>
+    </section>
+
+    <section id="dash-d-active" class="dash-section dashboard-card">
+        <div class="section-label">Active</div>
+        <h3 style="color:#fff;">Rides by date</h3>
+        <div id="upcoming">
+            {% if upcoming %}
+            {% regroup upcoming by created_at|date:"Y-m-d" as ride_day_groups %}
+            {% for day in ride_day_groups %}
+            <h4 style="color:#dc143c;margin-top:16px;">{{ day.grouper }}</h4>
+            {% for ride in day.list %}
+            <div class="ride-item" data-ride-id="{{ ride.id }}">
+                <div class="ride-details">
+                    <strong>Ride #{{ ride.id }}</strong><br>
+                    From: {{ ride.pickup_location.address|default:"—" }}<br>
+                    To: {{ ride.dropoff_location.address|default:"—" }}<br>
+                    Customer: {{ ride.customer.username }} · ₹{{ ride.fare|floatformat:2 }}<br>
+                    Status: <span class="ride-status">{{ ride.status }}</span>
+                </div>
+                <div class="ride-actions">
+                    {% if ride.status == 'accepted' %}
+                        {% if not ride.pickup_otp %}
+                        <button type="button" class="reach-pickup-btn btn-red" data-rideid="{{ ride.id }}">Reach location (OTP)</button>
+                        {% elif not ride.otp_verified %}
+                        <input type="text" class="otp-input" data-rideid="{{ ride.id }}" placeholder="OTP" maxlength="6" style="max-width:100px;display:inline-block;">
+                        <button type="button" class="verify-otp-btn btn-red" data-rideid="{{ ride.id }}">Verify</button>
+                        {% else %}
+                        <button type="button" class="start-btn btn-red" data-rideid="{{ ride.id }}">Start &amp; record</button>
+                        {% endif %}
+                    {% elif ride.status == 'ongoing' %}
+                        <button type="button" class="destination-btn btn-red" data-rideid="{{ ride.id }}">Reached destination</button>
+                    {% elif ride.status == 'awaiting_ack' %}
+                        <p style="color:#888;">Waiting for rider acknowledgment…</p>
+                    {% endif %}
+                </div>
+                <div class="recorder-controls" data-rideid="{{ ride.id }}" style="display:none;margin-top:10px;">
+                    <div class="recording-status" style="color:#dc143c;font-weight:600;">Recording trip audio</div>
+                    <p style="font-size:.85rem;color:#888;margin-top:6px;">Stops when you tap <em>Reached destination</em>.</p>
+                </div>
+            </div>
+            {% endfor %}
+            {% endfor %}
+            {% else %}
+            <p style="color:#666;">No active rides.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section id="dash-d-pending" class="dash-section dashboard-card">
+        <div class="section-label">Open pool</div>
+        <h3 style="color:#fff;">Pending requests</h3>
+        <div id="pending">
+            {% for ride in pending %}
+            <div class="ride-item">
+                #{{ ride.id }} — {{ ride.customer.username }} — ₹{{ ride.fare|floatformat:2 }}
+                <button type="button" class="accept-btn btn-red" data-rideid="{{ ride.id }}">Accept</button>
+            </div>
+            {% empty %}
+            <p style="color:#666;">No open requests.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section id="dash-d-gps" class="dash-section dashboard-card">
+        <div class="section-label">GPS</div>
+        <h3 style="color:#fff;">Share location</h3>
+        <p style="font-size:.9rem;color:#888;">For your <strong>ongoing</strong> ride only.</p>
+        <button type="button" id="startLocation" class="btn-red">Start sharing</button>
+        <div id="locationStatus" style="margin-top:8px;color:#888;">Off</div>
+    </section>
+
+    <section id="dash-d-chat" class="dash-section dashboard-card">
+        <div class="section-label">Chat</div>
+        <h3 style="color:#fff;">Customer messages</h3>
+        <div id="chatMessages" class="messages" style="min-height:140px;"></div>
+        <input type="text" id="chatInput" placeholder="Message…" style="width:72%;">
+        <button type="button" id="sendMsg" class="btn-red">Send</button>
+    </section>
+
+    <section id="dash-d-support" class="dash-section dashboard-card">
+        <div class="section-label">Support</div>
+        <h3 style="color:#fff;">Admin voice replies</h3>
+        <p style="font-size:.85rem;color:#888;">Listen, then acknowledge.</p>
+        <div id="driverTicketList"></div>
+    </section>
+
+    <section id="dash-d-history" class="dash-section dashboard-card">
+        <div class="section-label">History</div>
+        <h3 style="color:#fff;">Recent completed</h3>
+        <div id="completed">
+            {% for ride in completed %}
+            <div class="ride-item">
+                <strong>#{{ ride.id }}</strong> — ₹{{ ride.fare|floatformat:2 }} — {{ ride.payment_status }}
+                {% if ride.recording and ride.recording.audio_file %}
+                <audio controls preload="metadata" style="width:100%;margin-top:8px;">
+                    <source src="{{ ride.recording.audio_file.url }}" type="audio/webm">
+                </audio>
+                <a href="{{ ride.recording.audio_file.url }}" target="_blank" rel="noopener" style="color:#dc143c;font-size:.85rem;">Open recording</a>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p style="color:#666;">None yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+
+<script src="{% static 'js/driver_dashboard.js' %}?v=subnav1"></script>
+<script src="{% static 'js/dash_subnav.js' %}?v=1"></script>
+{% endblock %}

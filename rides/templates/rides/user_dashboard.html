@@ -1,0 +1,132 @@
+{% extends 'rides/base.html' %}
+{% load static %}
+
+{% block title %}Book a ride{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+#map { height: 420px; width: 100%; border-radius: 14px; margin: 15px 0; border: 1px solid #dc143c; }
+.past-table { width:100%; border-collapse:collapse; font-size:.9rem; margin-top:12px; }
+.past-table th, .past-table td { border:1px solid #333; padding:10px; text-align:left; }
+.past-table th { background:#1a0508; color:#dc143c; }
+.section-label { color:#dc143c; font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; margin-bottom:8px; font-weight:700; }
+.dash-headline { color:#fff; font-size:1.65rem; margin:0 0 10px; font-weight:800; }
+.dash-sub { color:#9a9a9a; font-size:.95rem; line-height:1.5; max-width:560px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<nav class="dash-subnav" aria-label="Rider dashboard sections">
+    <div class="dash-subnav-scroll">
+        <a href="#dash-r-overview" class="is-active">Overview</a>
+        <a href="#dash-r-map">Map &amp; book</a>
+        <a href="#dash-r-trip">Trip</a>
+        <a href="#chatCard">Chat</a>
+        <a href="#dash-r-history">History</a>
+    </div>
+</nav>
+
+<div class="dash-shell">
+
+    <section id="dash-r-overview" class="dash-section dashboard-card">
+        <div class="section-label">Start here</div>
+        <h2 class="dash-headline">Where are you going?</h2>
+        <p class="dash-sub">Use the map below: first tap pickup, then drop. Fare estimates instantly. Admin assigns your driver.</p>
+    </section>
+
+    <section id="dash-r-map" class="dash-section dashboard-card map-card">
+        <div class="section-label">Book</div>
+        <h3 style="color:#fff;margin-bottom:8px;">Pickup &amp; drop</h3>
+        <div id="map"></div>
+        <input type="text" id="pickup" placeholder="Pickup address" readonly>
+        <input type="text" id="dropoff" placeholder="Dropoff address" readonly>
+        <button type="button" id="requestRide" class="btn-red">Request ride</button>
+    </section>
+
+    <section id="dash-r-trip" class="dash-section dashboard-card">
+        <div class="section-label">Live trip</div>
+        <h3 style="color:#fff;">Current ride</h3>
+        <div id="rideInfo">No active ride — book on the map.</div>
+        <div id="otpSection" style="display:none;margin-top:12px;padding:14px;background:#141414;border-radius:12px;border:1px solid #dc143c;">
+            <strong style="color:#dc143c;">Pickup OTP</strong>
+            <p style="color:#ccc;font-size:.9rem;">Tell your driver this code to start the trip.</p>
+            <div id="otpDisplay" style="font-size:1.85rem;letter-spacing:10px;font-weight:800;color:#fff;"></div>
+        </div>
+        <div id="ackSection" style="display:none;margin-top:12px;padding:14px;background:#141414;border-radius:12px;border:1px solid #444;">
+            <p>Driver reached your drop-off. Confirm to unlock payment.</p>
+            <button type="button" id="ackDropoff" class="btn-red">I acknowledge — end ride</button>
+        </div>
+        <div id="paymentSection" style="display:none;margin-top:14px;">
+            <p style="margin-bottom:10px;color:#ccc;">Pay fare</p>
+            <button type="button" id="payNow" class="btn-red" style="margin-right:10px;">Pay with Razorpay</button>
+            <button type="button" id="payCash" class="btn-red" style="background:#222;border:1px solid #dc143c;">Pay cash</button>
+        </div>
+        <div id="feedbackSection" style="display:none;margin-top:14px;padding:14px;background:#141414;border-radius:12px;border:1px solid #dc143c;">
+            <strong style="color:#dc143c;">Rate your driver</strong>
+            <select id="feedbackStars" style="max-width:140px;margin-top:8px;">
+                <option value="5">5 — Excellent</option>
+                <option value="4">4</option>
+                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="1">1 — Poor</option>
+            </select>
+            <textarea id="feedbackComment" placeholder="Optional comment" rows="2" style="margin-top:8px;"></textarea>
+            <button type="button" id="submitFeedback" class="btn-red" style="margin-top:8px;">Submit feedback</button>
+        </div>
+        <div id="ticketSection" style="display:none;margin-top:14px;padding:14px;background:#141414;border-radius:12px;border:1px solid #333;">
+            <strong style="color:#dc143c;">Complaints &amp; support</strong>
+            <p style="font-size:.85rem;color:#888;">Driver, delay, or app issues — you get a ticket ID.</p>
+            <select id="ticketReason">
+                <option value="extra_money">Driver asking extra money</option>
+                <option value="delay">Excessive delay</option>
+                <option value="other">Other (driver / website / app)</option>
+            </select>
+            <textarea id="ticketDesc" placeholder="Describe the issue"></textarea>
+            <button type="button" id="raiseTicket" class="btn-red">Raise ticket</button>
+            <p id="ticketResult"></p>
+        </div>
+        <div id="ticketResolutionStatus" style="margin-top:10px;color:#aaa;font-size:.9rem;"></div>
+    </section>
+
+    <section id="chatCard" class="dash-section dashboard-card" style="display:none;">
+        <div class="section-label">In trip</div>
+        <h3 style="color:#fff;">Chat with driver</h3>
+        <div id="driverLocation" style="color:#888;font-size:.9rem;margin-bottom:8px;">Waiting…</div>
+        <div id="chatMessages" class="messages" style="min-height:140px;"></div>
+        <input type="text" id="chatInput" placeholder="Message…" style="width:72%;">
+        <button type="button" id="sendMsg" class="btn-red">Send</button>
+    </section>
+
+    <section id="dash-r-history" class="dash-section dashboard-card">
+        <div class="section-label">Past rides</div>
+        <h3 style="color:#fff;">Your history</h3>
+        {% if past_rides %}
+        <div style="overflow-x:auto;">
+        <table class="past-table">
+            <tr><th>ID</th><th>When</th><th>Route</th><th>Fare</th><th>Status</th><th>Driver</th></tr>
+            {% for r in past_rides %}
+            <tr>
+                <td>#{{ r.id }}</td>
+                <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ r.pickup_location.address|default:"—"|truncatechars:28 }} → {{ r.dropoff_location.address|default:"—"|truncatechars:28 }}</td>
+                <td>₹{{ r.fare|floatformat:2 }}</td>
+                <td>{{ r.status }} / {{ r.payment_status }}</td>
+                <td>{{ r.driver.username|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        </div>
+        {% else %}
+        <p style="color:#666;">No past rides yet.</p>
+        {% endif %}
+    </section>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="{% static 'js/user_dashboard.js' %}?v=subnav1"></script>
+<script src="{% static 'js/dash_subnav.js' %}?v=1"></script>
+{% endblock %}

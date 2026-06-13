@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Steve Cabs — Complete setup &amp; project guide (Word-ready)</title>
+  <style>
+    body { font-family: Calibri, "Segoe UI", Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #222; max-width: 720px; margin: 24px auto; padding: 0 16px; }
+    h1 { font-size: 20pt; border-bottom: 1pt solid #c00; padding-bottom: 6px; }
+    h2 { font-size: 14pt; margin-top: 22pt; color: #333; }
+    h3 { font-size: 12pt; margin-top: 14pt; }
+    p, li { margin: 6pt 0; }
+    table { border-collapse: collapse; width: 100%; margin: 10pt 0; font-size: 10pt; }
+    th, td { border: 1pt solid #ccc; padding: 6pt 8pt; text-align: left; vertical-align: top; }
+    th { background: #f5f5f5; }
+    code, .mono { font-family: Consolas, "Courier New", monospace; font-size: 10pt; background: #f4f4f4; padding: 1px 4px; }
+    pre { font-family: Consolas, monospace; font-size: 9.5pt; background: #f8f8f8; border: 1pt solid #ddd; padding: 10pt; overflow-x: auto; white-space: pre-wrap; }
+    .note { background: #fff8e6; border-left: 3pt solid #e90; padding: 8pt 12pt; margin: 10pt 0; }
+    .title-meta { color: #555; font-size: 10pt; margin-bottom: 18pt; }
+  </style>
+</head>
+<body>
+
+<p class="title-meta"><strong>How to use this file in Microsoft Word:</strong> Open Word → <em>File</em> → <em>Open</em> → choose this HTML file → then <em>File</em> → <em>Save As</em> → <em>Word Document (*.docx)</em>.</p>
+
+<h1>Steve Cabs — From beginning to end</h1>
+
+<p>This guide walks a new developer from installing Python through running the app, understanding packages (<strong>pip</strong>), and following the main product flow (customer → driver → payment).</p>
+
+<h2>Part 1 — What you need on your computer</h2>
+
+<ol>
+  <li><strong>Python 3.10 or newer</strong> (3.11 or 3.12 is fine). Download from the official site: <span class="mono">https://www.python.org/downloads/</span></li>
+  <li>During Windows setup, enable <strong>&quot;Add python.exe to PATH&quot;</strong> so you can run <span class="mono">python</span> and <span class="mono">pip</span> from any folder.</li>
+  <li>A code editor (e.g. Visual Studio Code) is optional but helpful.</li>
+</ol>
+
+<h2>Part 2 — What is pip, and where do you install packages?</h2>
+
+<p><strong>pip</strong> is Python&apos;s package installer. It downloads libraries (Django, Razorpay, etc.) from the internet into your Python environment.</p>
+
+<p><strong>Where to run pip:</strong> Always run it in a terminal (PowerShell or Command Prompt), after you have:</p>
+<ul>
+  <li>Navigated to your project folder (the folder that contains <span class="mono">manage.py</span> and <span class="mono">requirements.txt</span>).</li>
+  <li>Activated a <strong>virtual environment</strong> (recommended) so packages stay inside this project and do not clash with other Python projects.</li>
+</ul>
+
+<p><strong>Typical Windows commands (project folder = steve_cabs):</strong></p>
+<pre>cd path\to\steve_cabs
+python -m venv venv
+venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt</pre>
+
+<p>The line <span class="mono">pip install -r requirements.txt</span> reads the list in <span class="mono">requirements.txt</span> and installs every package with the versions your team chose.</p>
+
+<div class="note"><strong>If PyTorch install fails or is very slow:</strong> On Windows, install the CPU build first, then run <span class="mono">pip install -r requirements.txt</span> again:<br />
+<pre>pip install torch --index-url https://download.pytorch.org/whl/cpu</pre>
+</div>
+
+<h2>Part 3 — What each main pip package is for</h2>
+
+<table>
+  <tr><th>Package</th><th>Role in Steve Cabs</th></tr>
+  <tr><td class="mono">Django</td><td>Web framework: URLs, views, templates, database (ORM).</td></tr>
+  <tr><td class="mono">channels</td>, <span class="mono">daphne</span></td><td>WebSockets / async support (e.g. chat-style features).</td></tr>
+  <tr><td class="mono">channels-redis</td><td>Optional scaling layer for Channels (Redis); project may use in-memory layer in dev.</td></tr>
+  <tr><td class="mono">razorpay</td><td>Server-side SDK: create orders and verify payment signatures.</td></tr>
+  <tr><td class="mono">Pillow</td><td>Image handling if uploads use images.</td></tr>
+  <tr><td class="mono">google-generativeai</td><td>Optional Gemini-related helpers if configured.</td></tr>
+  <tr><td class="mono">ollama</td><td>Talks to a local Ollama API (e.g. Qwen) for translations/summaries when running.</td></tr>
+  <tr><td class="mono">httpx</span>, <span class="mono">httpcore</span>, <span class="mono">requests</span></td><td>HTTP clients for APIs and helpers.</td></tr>
+  <tr><td class="mono">deep-translator</td><td>Fallback translation (e.g. admin message to driver language).</td></tr>
+  <tr><td class="mono">gTTS</span>, <span class="mono">edge-tts</span>, <span class="mono">pyttsx3</span></td><td>Text-to-speech paths for tickets or audio features.</td></tr>
+  <tr><td class="mono">faster-whisper</span>, <span class="mono">soundfile</span>, <span class="mono">numpy</span></td><td>Local speech-to-text for trip recordings (downloads a model on first use).</td></tr>
+  <tr><td class="mono">torch</span>, <span class="mono">transformers</span></td><td>Used by optional/heavy utilities (e.g. voice generation scripts); not every page load needs them.</td></tr>
+</table>
+
+<h2>Part 4 — Environment file (.env) and secrets</h2>
+
+<ol>
+  <li>Copy <span class="mono">.env.example</span> to <span class="mono">.env</span> in the <strong>same folder as manage.py</strong>.</li>
+  <li>Set <span class="mono">RAZORPAY_KEY_ID</span> and <span class="mono">RAZORPAY_KEY_SECRET</span> from the Razorpay dashboard (<strong>Test mode</strong> for development).</li>
+  <li>Never commit <span class="mono">.env</span> to Git; it is in <span class="mono">.gitignore</span>.</li>
+  <li>Optional: <span class="mono">DJANGO_SECRET_KEY</span>, <span class="mono">GEMINI_API_KEY</span>, <span class="mono">FFMPEG_BINARY</span> (path to ffmpeg.exe on Windows).</li>
+</ol>
+
+<h2>Part 5 — Database and first run</h2>
+
+<pre>python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver</pre>
+
+<p>Open the URL shown (usually <span class="mono">http://127.0.0.1:8000/</span>). The superuser account is for Django admin and staff-only pages.</p>
+
+<h2>Part 6 — Project layout (where to look in code)</h2>
+
+<table>
+  <tr><th>Path</th><th>Purpose</th></tr>
+  <tr><td class="mono">steve_cabs/settings.py</td><td>Loads <span class="mono">.env</span>, database, static files, Razorpay settings.</td></tr>
+  <tr><td class="mono">rides/</td><td>Core rides: models, views, booking and driver flow, recordings.</td></tr>
+  <tr><td class="mono">payments/</td><td>Razorpay order creation and payment verification.</td></tr>
+  <tr><td class="mono">tickets/</td><td>Support tickets and admin replies.</td></tr>
+  <tr><td class="mono">admin_dashboard/</td><td>Staff dashboards, charts, ride history.</td></tr>
+  <tr><td class="mono">accounts/</td><td>Users, registration, driver vs customer flags.</td></tr>
+  <tr><td class="mono">static/css/style.css</td><td>Main theme and dashboard layout.</td></tr>
+  <tr><td class="mono">static/js/*.js</td><td>Browser logic (maps, Razorpay checkout, driver/rider UI).</td></tr>
+</table>
+
+<h2>Part 7 — End-to-end product flow (conceptual)</h2>
+
+<ol>
+  <li><strong>Customer</strong> registers/logs in, books a ride (pickup/dropoff).</li>
+  <li><strong>Driver</strong> sees requests, accepts, drives to pickup; pickup may use an <strong>OTP</strong> check.</li>
+  <li>Trip moves to destination; customer may <strong>acknowledge</strong> completion.</li>
+  <li><strong>Payment:</strong> <em>Cash</em> (recorded in app) or <em>Razorpay</em> (test cards in test mode).</li>
+  <li><strong>Razorpay path:</strong> browser asks server to <span class="mono">create_order</span> → Razorpay Checkout opens → on success, browser sends payment id + signature to <span class="mono">payment_success</span> → server verifies with the <strong>secret key</strong> → ride marked paid.</li>
+  <li>Optional: <strong>ratings</strong>, <strong>tickets</strong>, <strong>recordings</strong> (Whisper/Ollama) depending on configuration.</li>
+</ol>
+
+<h2>Part 8 — Troubleshooting</h2>
+
+<ul>
+  <li><strong>ModuleNotFoundError:</strong> Activate <span class="mono">venv</span> and run <span class="mono">pip install -r requirements.txt</span> again.</li>
+  <li><strong>Payment errors:</strong> Confirm <span class="mono">.env</span> keys, restart server after editing <span class="mono">.env</span>.</li>
+  <li><strong>Ollama / Qwen errors:</strong> Install and run Ollama locally if you use that translation path; otherwise fallback translation may still run.</li>
+  <li><strong>Whisper first run:</strong> May download a model; needs disk space and time.</li>
+</ul>
+
+<p style="margin-top:28pt; font-size:10pt; color:#666;">End of document. For a shorter developer-only outline, see <span class="mono">JUNIOR_GUIDE.md</span> in the same project folder.</p>
+
+</body>
+</html>

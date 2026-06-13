@@ -1,0 +1,180 @@
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+body{background:#0a0a0a;color:#e0e0e0;line-height:1.6;}
+.navbar{background:#111;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #dc143c;position:sticky;top:0;z-index:100;}
+.navbar a{color:#dc143c;text-decoration:none;margin-left:25px;font-weight:600;}
+.logo,.steve-brand{font-size:1.5rem;font-weight:800;color:#dc143c;text-decoration:none;display:inline-block;}
+/* # Steve Cabs wordmark: zoom + fade on every page load */
+@keyframes steveBrandIn{
+  0%{opacity:0;transform:scale(0.78);letter-spacing:.35em;filter:blur(6px);}
+  100%{opacity:1;transform:scale(1);letter-spacing:.08em;filter:blur(0);}
+}
+.steve-brand{animation:steveBrandIn .9s cubic-bezier(.22,1,.36,1) both;}
+@keyframes pageMainFade{
+  from{opacity:0;transform:translateY(16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.page-main-fade{animation:pageMainFade .55s ease .12s both;}
+html{scroll-behavior:smooth;scroll-padding-top:7.5rem;}
+/* # In-page dashboard nav (Uber-style): sticky under main header */
+.navbar{min-height:60px;align-items:center;}
+.dash-subnav{
+  position:sticky;top:60px;z-index:95;
+  background:linear-gradient(180deg,rgba(6,6,6,.98),rgba(14,14,14,.96));
+  border-bottom:1px solid rgba(220,20,60,.45);
+  box-shadow:0 6px 20px rgba(0,0,0,.4);
+}
+.dash-subnav-scroll{
+  max-width:1320px;margin:0 auto;display:flex;flex-wrap:nowrap;gap:8px;
+  padding:12px 24px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;scrollbar-color:#dc143c #1a1a1a;
+}
+/* # Force pill text — browsers default <a> to blue; override for all states */
+.dash-subnav-scroll a,
+.dash-subnav-scroll a:link,
+.dash-subnav-scroll a:visited{
+  flex-shrink:0;padding:10px 20px;border-radius:999px;font-size:.82rem;font-weight:700;
+  color:#e4e4e4;text-decoration:none;border:1px solid rgba(255,255,255,.1);
+  background:rgba(30,30,30,.9);transition:background .2s,color .2s,border-color .2s,box-shadow .2s;
+  white-space:nowrap;
+}
+.dash-subnav-scroll a:hover{
+  color:#fff;border-color:rgba(220,20,60,.5);background:rgba(220,20,60,.18);
+  box-shadow:0 0 14px rgba(220,20,60,.12);
+}
+.dash-subnav-scroll a.is-active{
+  color:#fff;background:#c41230;border-color:#e02040;
+  box-shadow:0 4px 16px rgba(220,20,60,.28);
+}
+.dash-section{scroll-margin-top:6.5rem;}
+.dash-shell{max-width:1320px;margin:0 auto;padding:8px 24px 56px;}
+@media (max-width:640px){
+  .dash-subnav-scroll{padding:10px 14px;gap:6px;}
+  .dash-shell{padding:8px 14px 40px;}
+}
+.dash-intro{margin-bottom:8px;}
+footer{text-align:center;padding:20px;background:#111;border-top:1px solid #dc143c;margin-top:50px;}
+.btn-red,button{background:#dc143c;color:white;border:none;padding:10px 24px;border-radius:30px;cursor:pointer;font-weight:600;transition:background 0.3s;}
+.btn-red:hover,button:hover{background:#b01030;}
+/* # Generic cards (auth, etc.) */
+.card{background:#1a1a1a;border-radius:20px;padding:20px;margin:15px;border:1px solid rgba(220,20,60,.35);box-shadow:0 4px 20px rgba(0,0,0,.35);}
+/* # Rider/driver dashboard panels + ticket admin — clean blocks, subtle border (not heavy red frames) */
+.dash-shell .dashboard-card,
+.dashboard-container .dashboard-card{
+  background:linear-gradient(165deg,#181818 0%,#121212 100%);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;
+  padding:22px 26px;
+  margin:0 0 18px 0;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.dash-shell .dashboard-card:hover,
+.dashboard-container .dashboard-card:hover{
+  border-color:rgba(220,20,60,.22);
+}
+.dash-shell .map-card{
+  border-left:3px solid rgba(220,20,60,.75);
+}
+input,select,textarea{width:100%;padding:12px;margin:8px 0;background:#2a2a2a;border:1px solid #dc143c;color:white;border-radius:10px;}
+input:focus{outline:none;border-color:#ff3355;}
+.ride-item{background:#2a2a2a;margin:10px 0;padding:12px;border-radius:12px;border-left:3px solid #dc143c;}
+.messages{background:#2a2a2a;padding:10px;border-radius:12px;margin-top:10px;max-height:250px;overflow-y:auto;}
+.dashboard-container{display:flex;gap:25px;padding:25px;flex-wrap:wrap;max-width:1400px;margin:0 auto;}
+.map-card{flex:2;min-width:350px;}
+.map{height:400px;border-radius:16px;overflow:hidden;margin:15px 0;border:1px solid #dc143c;}
+.auth-body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#0a0a0a,#1a1a1a);}
+.auth-card{background:#1a1a1a;padding:2rem;border-radius:1.5rem;width:450px;border:1px solid #dc143c;box-shadow:0 10px 30px rgba(220,20,60,0.3);}
+.auth-card h2{color:#dc143c;text-align:center;margin-bottom:1.5rem;font-size:2rem;}
+.auth-card button{width:100%;}
+.auth-card a{color:#dc143c;display:block;text-align:center;margin-top:1rem;}
+.carousel{position:relative;width:100%;height:550px;overflow:hidden;}
+.carousel-inner{display:flex;transition:transform 0.5s ease;height:100%;}
+.carousel-item{min-width:100%;height:100%;background-size:cover;background-position:center;}
+.carousel-control{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.6);color:white;padding:12px 18px;cursor:pointer;font-size:24px;border-radius:50%;border:none;}
+.prev{left:20px;}.next{right:20px;}
+.hero-text{position:absolute;bottom:20%;left:10%;color:white;text-shadow:2px 2px 8px black;}
+.hero-text h1{font-size:3rem;}
+.btn-book{background:#dc143c;padding:12px 35px;border-radius:40px;color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-top:20px;}
+@media (max-width:768px){.dashboard-container{flex-direction:column;}.hero-text h1{font-size:2rem;}}
+/* Ride item card styling */
+.ride-item {
+    background: #1e1e1e;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-left: 4px solid #dc143c;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ride-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(220, 20, 60, 0.2);
+}
+
+.ride-details {
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.ride-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.ride-actions button {
+    background: #dc143c;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.ride-actions button:hover {
+    background: #b01030;
+}
+
+/* Recorder controls */
+.recorder-controls {
+    background: #252525;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 15px;
+    border: 1px solid #dc143c;
+    transition: all 0.3s ease;
+}
+
+.recorder-controls h4 {
+    color: #dc143c;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.recorder-controls button {
+    margin-right: 10px;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-weight: 500;
+}
+
+.start-recording-btn {
+    background: #28a745;
+}
+.start-recording-btn:hover {
+    background: #218838;
+}
+
+.stop-recording-btn {
+    background: #dc3545;
+}
+.stop-recording-btn:hover {
+    background: #c82333;
+}
+
+.recording-status {
+    color: #ccc;
+    font-size: 0.85rem;
+    margin-top: 8px;
+}

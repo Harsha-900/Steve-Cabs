@@ -1,0 +1,90 @@
+{% extends 'rides/base.html' %}
+{% block title %}Ride history{% endblock %}
+
+{% block extra_css %}
+<style>
+.history-wrap { max-width: 1400px; margin: 0 auto; padding: 28px 24px 48px; }
+.history-wrap h2 { color: #dc143c; margin-bottom: 8px; font-size: 1.75rem; }
+.filter-row { margin-bottom: 22px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+table.hist { width: 100%; border-collapse: separate; border-spacing: 0; background: #111; border-radius: 12px; overflow: hidden; border: 1px solid #333; }
+table.hist th, table.hist td { border-bottom: 1px solid #2a2a2a; padding: 12px 14px; text-align: left; vertical-align: top; }
+table.hist th { background: #1a0508; color: #dc143c; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+table.hist tr:last-child td { border-bottom: none; }
+table.hist .route-cell { max-width: 280px; font-size: 0.9rem; line-height: 1.45; color: #ccc; }
+.rec-cell { min-width: 220px; max-width: 320px; }
+.rec-cell .rec-label { font-size: 0.7rem; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+.rec-cell audio, .rec-cell video { width: 100%; max-width: 280px; border-radius: 8px; margin-top: 4px; }
+.rec-cell .rec-meta { font-size: 0.8rem; color: #888; margin-top: 6px; max-height: 3.2em; overflow: hidden; }
+.ticket-pill { display: inline-block; background: #2a2a2a; padding: 6px 10px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 6px; border: 1px solid #444; }
+.rec-none { color: #666; font-size: 0.9rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-wrap">
+    <h2>Ride history by date</h2>
+    <p style="color:#888;margin-bottom:16px;font-size:.95rem;">Driver trip recordings (cabin audio) appear below after the driver ends the ride and upload finishes.</p>
+    <form class="filter-row" method="get">
+        <label style="color:#ccc;">Date <input type="date" name="date" value="{{ filter_date }}" style="margin-left:8px;"></label>
+        <button type="submit" class="btn-red">Filter</button>
+        <a href="/admin-dashboard/" class="btn-red" style="display:inline-block;text-decoration:none;padding:10px 24px;">Main admin</a>
+    </form>
+
+    <table class="hist">
+        <tr>
+            <th>ID</th>
+            <th>When</th>
+            <th>Route</th>
+            <th>Fare / Pay</th>
+            <th>Users</th>
+            <th>Complaints</th>
+            <th>Driver recording</th>
+        </tr>
+        {% for ride in rides %}
+        <tr>
+            <td><strong>#{{ ride.id }}</strong></td>
+            <td style="white-space:nowrap;font-size:.9rem;">{{ ride.created_at }}</td>
+            <td class="route-cell">
+                <strong style="color:#dc143c;">From</strong> {{ ride.pickup_location.address|default:"—"|truncatechars:80 }}<br>
+                <strong style="color:#dc143c;">To</strong> {{ ride.dropoff_location.address|default:"—"|truncatechars:80 }}
+            </td>
+            <td>₹{{ ride.fare|floatformat:2 }}<br><span style="color:#888;font-size:.85rem;">{{ ride.payment_status }}{% if ride.payment_method %} · {{ ride.payment_method }}{% endif %}</span></td>
+            <td style="font-size:.9rem;">
+                <strong>Customer</strong> {{ ride.customer.username }}<br>
+                <strong>Driver</strong> {{ ride.driver.username|default:"—" }}
+            </td>
+            <td>
+                {% for t in ride.ticket_set.all %}
+                <span class="ticket-pill">#{{ t.ticket_id }} — {{ t.get_reason_display }} ({{ t.status }})</span><br>
+                {% empty %}
+                <span class="rec-none">—</span>
+                {% endfor %}
+            </td>
+            <td class="rec-cell">
+                {% if ride.recording and ride.recording.audio_file %}
+                <div class="rec-label">Trip audio (WebM)</div>
+                <audio controls preload="metadata">
+                    <source src="{{ ride.recording.audio_file.url }}" type="audio/webm">
+                </audio>
+                <video controls preload="metadata" style="max-height:100px;background:#000;">
+                    <source src="{{ ride.recording.audio_file.url }}" type="video/webm">
+                </video>
+                <a href="{{ ride.recording.audio_file.url }}" target="_blank" rel="noopener" style="color:#dc143c;font-size:.85rem;display:inline-block;margin-top:6px;">Open / download</a>
+                {% if ride.recording.audio_output %}
+                <div class="rec-label" style="margin-top:10px;">EN summary (TTS)</div>
+                <audio controls preload="metadata" src="{{ ride.recording.audio_output.url }}"></audio>
+                {% endif %}
+                {% if ride.recording.english_transcript %}
+                <p class="rec-meta" title="{{ ride.recording.english_transcript }}"><strong>Transcript:</strong> {{ ride.recording.english_transcript|truncatechars:120 }}</p>
+                {% endif %}
+                {% else %}
+                <span class="rec-none">No file yet — recording uploads when driver taps <em>Reached destination</em>.</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No rides on this date.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

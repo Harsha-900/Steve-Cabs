@@ -1,0 +1,54 @@
+.carousel {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    overflow: hidden;
+}
+.carousel-inner {
+    display: flex;
+    transition: transform 0.5s ease;
+    height: 100%;
+}
+.carousel-item {
+    min-width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 24px;
+    border-radius: 50%;
+    width: 40px;
+    text-align: center;
+    border: none;
+}
+.prev {
+    left: 10px;
+}
+.next {
+    right: 10px;
+}
+.hero-text {
+    position: absolute;
+    bottom: 20%;
+    left: 10%;
+    color: white;
+    text-shadow: 2px 2px 4px black;
+}
+.btn-book {
+    background: #dc143c;
+    padding: 12px 30px;
+    border-radius: 40px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 20px;
+}

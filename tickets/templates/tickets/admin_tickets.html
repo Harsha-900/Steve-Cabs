@@ -1,0 +1,33 @@
+{% extends 'rides/base.html' %}
+{% load static %}
+{% block title %}Admin Tickets{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <h2>Open Tickets</h2>
+    {% for ticket in tickets %}
+    <div class="dashboard-card">
+        <p><strong>Ticket #{{ ticket.ticket_id }}</strong> - {{ ticket.get_reason_display }} - {{ ticket.status }}</p>
+        <p>User: {{ ticket.user.username }} | Ride: {{ ticket.ride.id }}</p>
+        <p>{{ ticket.description }}</p>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
+            <textarea name="message" placeholder="Admin reply" required></textarea>
+            <input type="file" name="voice_note" accept="audio/*">
+            <button type="submit">Resolve & Send</button>
+        </form>
+        {% if ticket.replies.all %}
+            <hr>
+            <h4>Replies</h4>
+            {% for reply in ticket.replies.all %}
+                <p><strong>Admin:</strong> {{ reply.message }}</p>
+                <p><strong>Translated for driver:</strong> {{ reply.translated_for_driver }}</p>
+                {% if reply.voice_note %}
+                    <audio controls src="{{ reply.voice_note.url }}"></audio>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
